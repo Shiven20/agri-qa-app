@@ -42,7 +42,6 @@ tokenizers==0.20.3
 torch
 tqdm==4.67.1
 transformers==4.46.3
-triton==3.0.0
 typing-extensions==4.13.2
 urllib3==2.2.3
 werkzeug==3.0.6
