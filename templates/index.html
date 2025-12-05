@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 Agriculture Q&A Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px 60px 15px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .mic-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .mic-button.recording {
+            background: #ff4444;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .ask-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .ask-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .ask-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .clear-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .clear-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .result-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-box p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 1.05em;
+        }
+        
+        .language-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .speaker-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #667eea;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .speaker-button:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+        
+        .speaker-button.playing {
+            animation: pulse 1s infinite;
+        }
+        
+        .error {
+            background: #fee;
+            border-left-color: #f44;
+            color: #c00;
+        }
+        
+        .example-questions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        
+        .example-questions h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .example-btn {
+            display: inline-block;
+            background: #f0f0f0;
+            color: #333;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 Agriculture Q&A Assistant</h1>
+            <p>🎤 Speak or type your questions in any language</p>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-wrapper">
+                <textarea id="questionInput" placeholder="Ask your agriculture question in any language...
+Example: धान की खेती कैसे करें? (Hindi)
+Example: ¿Cómo controlar las plagas? (Spanish)
+Or click the microphone to speak..."></textarea>
+                <button class="mic-button" id="micButton" onclick="toggleRecording()">🎤</button>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+            
+            <div class="button-group">
+                <button class="ask-btn" onclick="askQuestion()">Ask Question</button>
+                <button class="clear-btn" onclick="clearAll()">Clear</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing your question...</p>
+        </div>
+        
+        <div class="result-section" id="results">
+            <div class="result-box">
+                <h3>
+                    📝 Your Question
+                    <span class="language-badge" id="detectedLang"></span>
+                </h3>
+                <p id="originalQuestion"></p>
+            </div>
+            
+            <div class="result-box">
+                <h3>💬 Answer</h3>
+                <button class="speaker-button" id="speakerButton" onclick="playAnswer()">🔊</button>
+                <p id="answer"></p>
+            </div>
+            
+            <div class="result-box" id="englishSection" style="display: none;">
+                <h3>🔤 English Translation</h3>
+                <p><strong>Question:</strong> <span id="englishQuestion"></span></p>
+                <p><strong>Answer:</strong> <span id="englishAnswer"></span></p>
+            </div>
+        </div>
+        
+        <div class="example-questions">
+            <h3>💡 Example Questions:</h3>
+            <span class="example-btn" onclick="setQuestion('What are the best practices for rice cultivation?')">Rice cultivation (English)</span>
+            <span class="example-btn" onclick="setQuestion('धान की खेती कैसे करें?')">धान की खेती (Hindi)</span>
+            <span class="example-btn" onclick="setQuestion('¿Cómo controlar las plagas en el trigo?')">Control de plagas (Spanish)</span>
+            <span class="example-btn" onclick="setQuestion('How to prevent crop diseases?')">Crop diseases (English)</span>
+        </div>
+    </div>
+    
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let currentAnswerText = '';
+        let currentLanguage = 'en';
+        let audioElement = null;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            
+            if (type === 'info') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    await sendAudioToServer(audioBlob);
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                
+                document.getElementById('micButton').classList.add('recording');
+                showStatus('🎤 Recording... Click again to stop', 'info');
+
+            } catch (error) {
+                console.error('Microphone error:', error);
+                showStatus('❌ Could not access microphone. Please check permissions.', 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('micButton').classList.remove('recording');
+                showStatus('⏹️ Processing your speech...', 'info');
+            }
+        }
+
+        async function sendAudioToServer(audioBlob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.wav');
+
+                const response = await fetch('/speech-to-text', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('questionInput').value = data.text;
+                    showStatus('✅ Speech recognized! Click "Ask Question" to get answer.', 'info');
+                } else {
+                    showStatus('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Speech-to-text error:', error);
+                showStatus('❌ Error processing speech: ' + error.message, 'error');
+            }
+        }
+
+        function setQuestion(question) {
+            document.getElementById('questionInput').value = question;
+        }
+        
+        function clearAll() {
+            document.getElementById('questionInput').value = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'none';
+            if (audioElement) {
+                audioElement.pause();
+                audioElement = null;
+            }
+        }
+        
+        async function askQuestion() {
+            const question = document.getElementById('questionInput').value.trim();
+            
+            if (!question) {
+                showStatus('⚠️ Please enter or speak a question!', 'error');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'Processing your question...';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'none';
+            document.querySelector('.ask-btn').disabled = true;
+            
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store for TTS
+                    currentAnswerText = data.translated_answer;
+                    currentLanguage = data.detected_language;
+
+                    // Display results
+                    document.getElementById('originalQuestion').textContent = data.original_question;
+                    document.getElementById('detectedLang').textContent = data.detected_language.toUpperCase();
+                    document.getElementById('answer').textContent = data.translated_answer;
+                    
+                    // Show English translation section if not English
+                    if (data.detected_language !== 'en') {
+                        document.getElementById('englishQuestion').textContent = data.english_question;
+                        document.getElementById('englishAnswer').textContent = data.english_answer;
+                        document.getElementById('englishSection').style.display = 'block';
+                    } else {
+                        document.getElementById('englishSection').style.display = 'none';
+                    }
+                    
+                    document.getElementById('results').style.display = 'block';
+                    showStatus('✅ Answer ready! Click 🔊 to hear it.', 'info');
+                } else {
+                    showStatus('❌ Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Error connecting to server: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.ask-btn').disabled = false;
+            }
+        }
+
+        async function playAnswer() {
+            if (!currentAnswerText) {
+                showStatus('⚠️ No answer to play!', 'error');
+                return;
+            }
+
+            const speakerBtn = document.getElementById('speakerButton');
+            speakerBtn.classList.add('playing');
+            document.getElementById('loadingText').textContent = 'Generating speech...';
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch('/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: currentAnswerText,
+                        language: currentLanguage
+                    })
+                });
+
+                if (response.ok) {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Stop previous audio if playing
+                    if (audioElement) {
+                        audioElement.pause();
+                    }
+                    
+                    audioElement = new Audio(audioUrl);
+                    
+                    audioElement.onended = () => {
+                        speakerBtn.classList.remove('playing');
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    
+                    audioElement.onerror = () => {
+                        speakerBtn.classList.remove('playing');
+                        showStatus('❌ Error playing audio', 'error');
+                    };
+                    
+                    await audioElement.play();
+                    showStatus('🔊 Playing answer...', 'info');
+                } else {
+                    showStatus('❌ Failed to generate speech', 'error');
+                    speakerBtn.classList.remove('playing');
+                }
+            } catch (error) {
+                console.error('TTS error:', error);
+                showStatus('❌ Error playing answer: ' + error.message, 'error');
+                speakerBtn.classList.remove('playing');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Allow Enter key to submit (Shift+Enter for new line)
+        document.getElementById('questionInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
